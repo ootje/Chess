@@ -43,8 +43,12 @@ private:
 	bool m_IsWhiteBottom;
 
 	Point2f m_MousePosition;
-	bool m_IsMovingPiece;
-	int m_MovingPiece;
+
+	bool m_IsWhiteMoving;
+	bool m_IsBlackMoving;
+
+	int m_WhiteMovingPiece;
+	int m_BlackMovingPiece;
 
 	bool m_IsWhitesMove;
 

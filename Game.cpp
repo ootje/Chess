@@ -131,9 +131,9 @@ void Game::Draw( ) const
 		dstRect.left = (m_pWhitePieces->at(i)->GetPosition() % 8) * m_SquareWidth;
 		dstRect.width = m_SquareWidth;
 		dstRect.height = m_SquareHeight;
-		if (m_IsMovingPiece)
+		if (m_IsWhiteMoving)
 		{
-			if (m_MovingPiece == i)
+			if (m_WhiteMovingPiece == i)
 			{
 				dstRect.left = m_MousePosition.x - m_SquareWidth / 2.f;
 				dstRect.bottom = m_MousePosition.y - m_SquareHeight / 2.f;
@@ -142,14 +142,22 @@ void Game::Draw( ) const
 		m_pWhitePieces->at(i)->Draw(m_pPiecesTexture, dstRect);
 	}
 
-	for (auto piece : *m_pBlackPieces)
+	for (size_t i = 0; i < m_pBlackPieces->size(); i++)
 	{
 		Rectf dstRect;
-		dstRect.bottom = int(float(piece->GetPosition()) / 8.f) * m_SquareHeight;
-		dstRect.left = (piece->GetPosition() % 8) * m_SquareWidth;
+		dstRect.bottom = int(float(m_pBlackPieces->at(i)->GetPosition()) / 8.f) * m_SquareHeight;
+		dstRect.left = (m_pBlackPieces->at(i)->GetPosition() % 8) * m_SquareWidth;
 		dstRect.width = m_SquareWidth;
 		dstRect.height = m_SquareHeight;
-		piece->Draw(m_pPiecesTexture, dstRect);
+		if (m_IsBlackMoving)
+		{
+			if (m_BlackMovingPiece == i)
+			{
+				dstRect.left = m_MousePosition.x - m_SquareWidth / 2.f;
+				dstRect.bottom = m_MousePosition.y - m_SquareHeight / 2.f;
+			}
+		}
+		m_pBlackPieces->at(i)->Draw(m_pPiecesTexture, dstRect);
 	}
 }
 
@@ -192,8 +200,19 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 		{
 			if (m_IsWhiteBottom)
 			{
-				m_MovingPiece = i;
-				m_IsMovingPiece = true;
+				m_WhiteMovingPiece = i;
+				m_IsWhiteMoving = true;
+			}
+		}
+	}
+	for (int i = 0; i < (int)m_pBlackPieces->size(); i++)
+	{
+		if (index == m_pBlackPieces->at(i)->GetPosition())
+		{
+			if (m_IsWhiteBottom)
+			{
+				m_BlackMovingPiece = i;
+				m_IsBlackMoving = true;
 			}
 		}
 	}
@@ -201,16 +220,28 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 
 void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 {
-	if (m_IsMovingPiece)
+	if (m_IsWhiteMoving)
 	{
 		int newIndex = int(m_MousePosition.x / m_SquareWidth) + 8 * int(m_MousePosition.y / m_SquareHeight);
 
-		if (IsValidMove(newIndex, m_pWhitePieces->at(m_MovingPiece)))
+		if (IsValidMove(newIndex, m_pWhitePieces->at(m_WhiteMovingPiece)))
 		{
-			m_pWhitePieces->at(m_MovingPiece)->SetPosition(newIndex);
+			m_pWhitePieces->at(m_WhiteMovingPiece)->SetPosition(newIndex);
 		}
 
-		m_IsMovingPiece = false;
+		m_IsWhiteMoving = false;
+	}
+
+	if (m_IsBlackMoving)
+	{
+		int newIndex = int(m_MousePosition.x / m_SquareWidth) + 8 * int(m_MousePosition.y / m_SquareHeight);
+
+		if (IsValidMove(newIndex, m_pBlackPieces->at(m_BlackMovingPiece)))
+		{
+			m_pBlackPieces->at(m_BlackMovingPiece)->SetPosition(newIndex);
+		}
+
+		m_IsBlackMoving = false;
 	}
 }
 
@@ -220,7 +251,7 @@ bool Game::IsValidMove(int newPosition , ChessPiece* piece) const
 	if (!valid)
 		return false;
 	// dont jump on own pieces
-	if (m_IsWhitesMove)
+	if (!bool(piece->GetColor()))
 	{
 		for (auto whitePiece : *m_pWhitePieces)
 		{
@@ -241,7 +272,7 @@ bool Game::IsValidMove(int newPosition , ChessPiece* piece) const
 		}
 	}
 
-	if (piece->GetPiece() == Piece::king) //cannot be in king loop would cause errors
+	if (piece->GetPiece() == Piece::king) //cannot be in king loop would cause infinite loop
 	{
 		if (!bool(piece->GetColor()))
 		{
@@ -264,8 +295,11 @@ bool Game::IsValidMove(int newPosition , ChessPiece* piece) const
 			}
 		}
 	}
+	else
+	{
+		valid = KingUnderAttack(newPosition, piece);
+	}
 	// make sure king is not under attack
-	valid = KingUnderAttack(newPosition, piece);
 
 	return valid;
 }
@@ -318,6 +352,7 @@ bool Game::ValidPawnMove(int newPosition, ChessPiece* piece) const
 
 	return valid;
 }
+
 bool Game::ValidRookMove(int newPosition, ChessPiece* piece) const
 {
 	bool valid = false;
@@ -440,10 +475,12 @@ bool Game::ValidBishopMove(int newPosition, ChessPiece* piece) const
 	}
 	return valid;
 }
+
 bool Game::ValidQueenMove(int newPosition, ChessPiece* piece) const
 {
 	return ValidBishopMove(newPosition,piece) || ValidRookMove(newPosition,piece);
 }
+
 bool Game::ValidKingMove(int newPosition, ChessPiece* piece) const
 {
 	bool valid = false;
