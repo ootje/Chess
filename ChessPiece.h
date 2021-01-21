@@ -31,6 +31,8 @@ public:
 	Piece GetPiece() const;
 	bool GetHasNotMoved() const;
 	Color GetColor() const;
+	bool GetCanBeEP() const;
+	void SetCanBeEp(bool canBe);
 
 	// no pointers for storage so...
 	ChessPiece(const ChessPiece& other) = default;
@@ -43,5 +45,7 @@ private:
 	Color m_Color;
 	Piece m_Piece;
 	bool m_HasNotMoved;
+
+	bool m_CanBeEnPassant;
 };
 

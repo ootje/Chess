@@ -6,6 +6,7 @@ ChessPiece::ChessPiece(Color color, int position, Piece piece)
 	, m_Position{position}
 	, m_Piece{piece}
 	, m_HasNotMoved{true}
+	, m_CanBeEnPassant{ false }
 {
 };
 ChessPiece::~ChessPiece() 
@@ -47,4 +48,13 @@ bool ChessPiece::GetHasNotMoved() const
 Color ChessPiece::GetColor() const
 {
 	return m_Color;
+}
+
+bool ChessPiece::GetCanBeEP() const
+{
+	return m_CanBeEnPassant;
+}
+void ChessPiece::SetCanBeEp(bool canBe)
+{
+	m_CanBeEnPassant = canBe;
 }

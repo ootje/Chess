@@ -88,6 +88,7 @@ void Game::Update( float elapsedSec )
 	//{
 	//	std::cout << "Left and up arrow keys are down\n";
 	//}
+	std::cout << int(m_pWhitePieces->at(4).GetCanBeEP()) << '\n';
 }
 
 void Game::Draw( ) const
@@ -185,7 +186,7 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 	{
 		if (index == m_pWhitePieces->at(i).GetPosition())
 		{
-			if (m_IsWhiteBottom)
+			if (m_IsWhitesMove)
 			{
 				m_WhiteMovingPiece = i;
 				m_IsWhiteMoving = true;
@@ -196,7 +197,7 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 	{
 		if (index == m_pBlackPieces->at(i).GetPosition())
 		{
-			if (m_IsWhiteBottom)
+			if (!m_IsWhitesMove)
 			{
 				m_BlackMovingPiece = i;
 				m_IsBlackMoving = true;
@@ -246,12 +247,31 @@ void Game::MakeMove(int newPosition, ChessPiece& piece)
 	}
 	else // if valid
 	{
+		if (!bool(piece.GetColor()))
+		{
+			for (auto& p : *pBlack)
+			{
+				p.SetCanBeEp(false);
+			}
+		}
+		else
+		{
+			for (auto& p : *pWhite)
+			{
+				p.SetCanBeEp(false);
+			}
+
+		}
+		
 		delete(m_pBlackPieces);
 		delete(m_pWhitePieces);
 		m_pWhitePieces = pWhite;
 		m_pBlackPieces = pBlack;
 		pWhite = nullptr;
 		pBlack = nullptr;
+
+		//swap turn
+		m_IsWhitesMove = !m_IsWhitesMove;
 	}
 }
 
@@ -296,6 +316,11 @@ bool Game::IsValidMove(int newPosition, ChessPiece& piece, std::vector<ChessPiec
 					pBlack->erase(pBlack->begin() + i);
 					break;
 				}
+				else if ((pBlack->at(i).GetPosition() == newPosition - 8) && pBlack->at(i).GetCanBeEP())//en passant
+				{
+					pBlack->erase(pBlack->begin() + i);
+					break;
+				}
 			}
 			for (size_t i = 0; i < pWhite->size(); i++)
 			{
@@ -311,6 +336,11 @@ bool Game::IsValidMove(int newPosition, ChessPiece& piece, std::vector<ChessPiec
 			for (size_t i = 0; i < pWhite->size(); i++)
 			{
 				if (pWhite->at(i).GetPosition() == newPosition)
+				{
+					pWhite->erase(pWhite->begin() + i);
+					break;
+				}
+				else if ((pWhite->at(i).GetPosition() == newPosition + 8) && pWhite->at(i).GetCanBeEP())//en passant
 				{
 					pWhite->erase(pWhite->begin() + i);
 					break;
@@ -411,6 +441,29 @@ bool Game::ValidPawnMove(int newPosition, ChessPiece piece, std::vector<ChessPie
 					return false;
 				}
 			}
+
+			if (!bool(piece.GetColor()))
+			{
+				for (size_t i = 0; i < pWhite->size(); i++)
+				{
+					if (piece.GetPosition() == pWhite->at(i).GetPosition())
+					{
+						pWhite->at(i).SetCanBeEp(true);
+						break;
+					}
+				}
+			}
+			else
+			{
+				for (size_t i = 0; i < pBlack->size(); i++)
+				{
+					if (piece.GetPosition() == pBlack->at(i).GetPosition())
+					{
+						pBlack->at(i).SetCanBeEp(true);
+						break;
+					}
+				}
+			}
 		}
 	}
 	if (newPosition - piece.GetPosition() == direction*8)
@@ -438,7 +491,7 @@ bool Game::ValidPawnMove(int newPosition, ChessPiece piece, std::vector<ChessPie
 		{
 			for (auto& p : *pBlack)
 			{
-				if (p.GetPosition() == newPosition)
+				if (p.GetPosition() == newPosition || (p.GetPosition() + direction*8 == newPosition && p.GetCanBeEP()))
 				{
 					valid = true;
 				}
@@ -448,7 +501,7 @@ bool Game::ValidPawnMove(int newPosition, ChessPiece piece, std::vector<ChessPie
 		{
 			for (auto& p : *pWhite)
 			{
-				if (p.GetPosition() == newPosition)
+				if (p.GetPosition() == newPosition || (p.GetPosition() + direction*8 == newPosition && p.GetCanBeEP()))
 				{
 					valid = true;
 				}
@@ -627,18 +680,21 @@ bool Game::ValidKingMove(int newPosition, ChessPiece piece, std::vector<ChessPie
 	return valid;
 }
 
-bool Game::KingUnderAttack(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack)
+bool Game::KingUnderAttack(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack, int newKingPosition)
 {
 	bool valid = true;
 	if (!bool(piece.GetColor()))
 	{
-		int kingPosition = -1;
-		for (auto& whitePiece : *pWhite)
+		int kingPosition = newKingPosition;
+		if (kingPosition == -100)
 		{
-			if (whitePiece.GetPiece() == Piece::king)
+			for (auto& whitePiece : *pWhite)
 			{
-				kingPosition = whitePiece.GetPosition();
-				break;
+				if (whitePiece.GetPiece() == Piece::king)
+				{
+					kingPosition = whitePiece.GetPosition();
+					break;
+				}
 			}
 		}
 		for (auto& blackPiece : *pBlack)
@@ -652,13 +708,16 @@ bool Game::KingUnderAttack(int newPosition, ChessPiece piece, std::vector<ChessP
 	}
 	else
 	{
-		int kingPosition = -1;
-		for (auto& blackPiece : *pBlack)
+		int kingPosition = newKingPosition;
+		if (kingPosition == -100)
 		{
-			if (blackPiece.GetPiece() == Piece::king)
+			for (auto& blackPiece : *pBlack)
 			{
-				kingPosition = blackPiece.GetPosition();
-				break;
+				if (blackPiece.GetPiece() == Piece::king)
+				{
+					kingPosition = blackPiece.GetPosition();
+					break;
+				}
 			}
 		}
 		for (auto& whitePiece : *pWhite)
@@ -683,7 +742,7 @@ bool Game::CheckForCastling(int newPosition, ChessPiece piece, std::vector<Chess
 			{
 				if (rook.GetPosition() == 7 && rook.GetHasNotMoved())
 				{
-					if (IsValidMove(5,rook,pWhite,pBlack))
+					if (IsValidMove(5,rook,pWhite,pBlack) && KingUnderAttack(newPosition - 1,piece,pWhite,pBlack, newPosition - 1))
 					{
 						//castle
 						rook.SetPosition(5);
@@ -698,7 +757,7 @@ bool Game::CheckForCastling(int newPosition, ChessPiece piece, std::vector<Chess
 			{
 				if (rook.GetPosition() == 0 && rook.GetHasNotMoved())
 				{
-					if (IsValidMove(3, rook, pWhite, pBlack))
+					if (IsValidMove(3, rook, pWhite, pBlack) && KingUnderAttack(newPosition + 1, piece, pWhite, pBlack, newPosition + 1))
 					{
 						//castle
 						rook.SetPosition(3);
@@ -716,7 +775,7 @@ bool Game::CheckForCastling(int newPosition, ChessPiece piece, std::vector<Chess
 			{
 				if (rook.GetPosition() == 63 && rook.GetHasNotMoved())
 				{
-					if (IsValidMove(63, rook, pWhite, pBlack))
+					if (IsValidMove(61, rook, pWhite, pBlack) && KingUnderAttack(newPosition - 1, piece, pWhite, pBlack, newPosition - 1))
 					{
 						//castle
 						rook.SetPosition(61);
@@ -731,7 +790,7 @@ bool Game::CheckForCastling(int newPosition, ChessPiece piece, std::vector<Chess
 			{
 				if (rook.GetPosition() == 56 && rook.GetHasNotMoved())
 				{
-					if (IsValidMove(59, rook, pWhite, pBlack))
+					if (IsValidMove(59, rook, pWhite, pBlack) && KingUnderAttack(newPosition + 1, piece, pWhite, pBlack, newPosition + 1))
 					{
 						//castle
 						rook.SetPosition(59);

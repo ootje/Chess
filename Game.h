@@ -62,7 +62,7 @@ private:
 	bool ValidQueenMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
 	bool ValidKingMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
 
-	bool KingUnderAttack(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
+	bool KingUnderAttack(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack, int newKingPosition = -100);
 	bool CheckForCastling(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
 
 	void MakeMove(int newPosition, ChessPiece& piece);
