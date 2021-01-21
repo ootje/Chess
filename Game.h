@@ -31,11 +31,11 @@ private:
 	void Cleanup( );
 	void ClearBackground( ) const;
 
-	std::vector<ChessPiece*>* m_pWhitePieces;
-	std::vector<ChessPiece*>* m_pBlackPieces;
+	std::vector<ChessPiece>* m_pWhitePieces;
+	std::vector<ChessPiece>* m_pBlackPieces;
 	Texture* m_pPiecesTexture;
 
-	std::vector<Point2f*>* m_pSquarePosition;
+	std::vector<Point2f>* m_pSquarePosition;
 	float m_SquareWidth;
 	float m_SquareHeight;
 
@@ -52,16 +52,18 @@ private:
 
 	bool m_IsWhitesMove;
 
-	bool IsValidMove(int newPosition, ChessPiece* piece) const;
-	bool IsValidMoveSwitch(int newPosition, ChessPiece* piece) const;
+	bool IsValidMove(int newPosition, ChessPiece& piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack) ;
+	bool IsValidMoveSwitch(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack) ;
 
-	bool ValidPawnMove(int newPosition, ChessPiece* piece) const;
-	bool ValidRookMove(int newPosition, ChessPiece* piece) const;
-	bool ValidKnightMove(int newPosition, ChessPiece* piece) const;
-	bool ValidBishopMove(int newPosition, ChessPiece* piece) const;
-	bool ValidQueenMove(int newPosition, ChessPiece* piece) const;
-	bool ValidKingMove(int newPosition, ChessPiece* piece) const;
+	bool ValidPawnMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
+	bool ValidRookMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
+	bool ValidKnightMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
+	bool ValidBishopMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
+	bool ValidQueenMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
+	bool ValidKingMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
 
-	bool KingUnderAttack(int newPosition, ChessPiece* piece) const;
-	bool CheckForCastling(int newPosition, ChessPiece* piece)const;
+	bool KingUnderAttack(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
+	bool CheckForCastling(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
+
+	void MakeMove(int newPosition, ChessPiece& piece);
 };
