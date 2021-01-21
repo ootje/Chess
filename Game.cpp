@@ -378,6 +378,7 @@ bool Game::ValidRookMove(int newPosition, ChessPiece* piece) const
 
 	return valid;
 }
+
 bool Game::ValidKnightMove(int newPosition, ChessPiece* piece) const
 {
 	bool valid = false;
@@ -401,6 +402,7 @@ bool Game::ValidKnightMove(int newPosition, ChessPiece* piece) const
 
 	return valid;
 }
+
 bool Game::ValidBishopMove(int newPosition, ChessPiece* piece) const
 {
 	bool valid = false;
@@ -410,12 +412,30 @@ bool Game::ValidBishopMove(int newPosition, ChessPiece* piece) const
 	int oldX = piece->GetPosition() % 8;
 	if (abs(oldX-newX) == abs(oldY-newY))
 	{
-		
-		
-		
-		
-		
-		
+		bool up = !std::signbit(float(newY-oldY));
+		bool right = !std::signbit(float(newX-oldX));
+		int direction = (2 * int(up) - 1) * 8 + (2 * int(right) - 1);
+		int position = piece->GetPosition() + direction;
+		while (position != newPosition)
+		{
+			for (auto piece : *m_pBlackPieces)
+			{
+				if (piece->GetPosition() == position)
+				{
+					//blocked
+					return false;
+				}
+			}
+			for (auto piece : *m_pWhitePieces)
+			{
+				if (piece->GetPosition() == position)
+				{
+					//blocked
+					return false;
+				}
+			}
+			position += direction;
+		}
 		valid = true;
 	}
 	return valid;
