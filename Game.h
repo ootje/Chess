@@ -57,4 +57,7 @@ private:
 	bool ValidBishopMove(int newPosition, ChessPiece* piece) const;
 	bool ValidQueenMove(int newPosition, ChessPiece* piece) const;
 	bool ValidKingMove(int newPosition, ChessPiece* piece) const;
+
+	bool KingUnderAttack(int newPosition, ChessPiece* piece) const;
+	bool CheckForCastling(int newPosition, ChessPiece* piece)const;
 };

@@ -217,7 +217,8 @@ void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 bool Game::IsValidMove(int newPosition , ChessPiece* piece) const
 {
 	bool valid = IsValidMoveSwitch(newPosition,piece);
-
+	if (!valid)
+		return false;
 	// dont jump on own pieces
 	if (m_IsWhitesMove)
 	{
@@ -225,7 +226,7 @@ bool Game::IsValidMove(int newPosition , ChessPiece* piece) const
 		{
 			if (whitePiece->GetPosition() == newPosition)
 			{
-				valid = false;
+				return false;
 			}
 		}
 	}
@@ -235,52 +236,36 @@ bool Game::IsValidMove(int newPosition , ChessPiece* piece) const
 		{
 			if (blackPiece->GetPosition() == newPosition)
 			{
-				valid = false;
-			}
-		}
-	}
-	// make sure king is not under attack
-	if (m_IsMovingPiece)
-	{
-		int kingPosition = -1;
-		for (auto whitePiece : *m_pWhitePieces)
-		{
-			if (whitePiece->GetPiece() == Piece::king)
-			{
-				kingPosition = whitePiece->GetPosition();
-				break;
-			}
-		}
-		for (auto blackPiece : *m_pBlackPieces)
-		{
-			if (IsValidMoveSwitch(kingPosition, blackPiece))
-			{
-				valid = false;
-				break;
-			}
-		}
-	}
-	else
-	{
-		int kingPosition = -1;
-		for (auto blackPiece : *m_pBlackPieces)
-		{
-			if (blackPiece->GetPiece() == Piece::king)
-			{
-				kingPosition = blackPiece->GetPosition();
-				break;
-			}
-		}
-		for (auto whitePiece : *m_pWhitePieces)
-		{
-			if (IsValidMoveSwitch(kingPosition, whitePiece))
-			{
-				valid = false;
-				break;
+				return false;
 			}
 		}
 	}
 
+	if (piece->GetPiece() == Piece::king) //cannot be in king loop would cause errors
+	{
+		if (!bool(piece->GetColor()))
+		{
+			for (auto blackPiece : *m_pBlackPieces)
+			{
+				if (IsValidMoveSwitch(newPosition, blackPiece))
+				{
+					return false;
+				}
+			}
+		}
+		else
+		{
+			for (auto whitePiece : *m_pWhitePieces)
+			{
+				if (IsValidMoveSwitch(newPosition, whitePiece))
+				{
+					 return false;
+				}
+			}
+		}
+	}
+	// make sure king is not under attack
+	valid = KingUnderAttack(newPosition, piece);
 
 	return valid;
 }
@@ -339,13 +324,55 @@ bool Game::ValidRookMove(int newPosition, ChessPiece* piece) const
 	if (int(newPosition/8.f) == int(piece->GetPosition()/8.f))
 	{
 		//horizontal
-
+		bool sign = !std::signbit(float(newPosition - piece->GetPosition()));
+		int position = piece->GetPosition() + (2 * int(sign) - 1);
+		while (position != newPosition)
+		{
+			for (auto piece : *m_pBlackPieces)
+			{
+				if (piece->GetPosition() == position)
+				{
+					//blocked
+					return false;
+				}
+			}
+			for (auto piece : *m_pWhitePieces)
+			{
+				if (piece->GetPosition() == position)
+				{
+					//blocked
+					return false;
+				}
+			}
+			position += (2 * int(sign) - 1);
+		}
 		valid = true;
 	}
 	else if ((newPosition%8) == piece->GetPosition()%8)
 	{
 		//vertical
-
+		bool sign = !std::signbit(float(newPosition - piece->GetPosition()));
+		int position = piece->GetPosition() + (2 * int(sign) - 1) * 8;
+		while (position != newPosition)
+		{
+			for (auto piece : *m_pBlackPieces)
+			{
+				if (piece->GetPosition() == position)
+				{
+					//blocked
+					return false;
+				}
+			}
+			for (auto piece : *m_pWhitePieces)
+			{
+				if (piece->GetPosition() == position)
+				{
+					//blocked
+					return false;
+				}
+			}
+			position += (2*int(sign)-1)*8;
+		}
 		valid = true;
 	}
 
@@ -383,6 +410,12 @@ bool Game::ValidBishopMove(int newPosition, ChessPiece* piece) const
 	int oldX = piece->GetPosition() % 8;
 	if (abs(oldX-newX) == abs(oldY-newY))
 	{
+		
+		
+		
+		
+		
+		
 		valid = true;
 	}
 	return valid;
@@ -406,6 +439,60 @@ bool Game::ValidKingMove(int newPosition, ChessPiece* piece) const
 	{
 		valid = true;
 	}
+
+	if (piece->GetHasNotMoved() && !valid)
+	{
+		valid = CheckForCastling(newPosition,piece);
+	}
+	
+	//not in danger walking
+
+	return valid;
+}
+
+bool Game::KingUnderAttack(int newPosition, ChessPiece* piece) const
+{
+	bool valid = true;
+	if (!bool(piece->GetColor()))
+	{
+		int kingPosition = -1;
+		for (auto whitePiece : *m_pWhitePieces)
+		{
+			if (whitePiece->GetPiece() == Piece::king)
+			{
+				kingPosition = whitePiece->GetPosition();
+				break;
+			}
+		}
+		for (auto blackPiece : *m_pBlackPieces)
+		{
+			if (IsValidMoveSwitch(kingPosition, blackPiece))
+			{
+				valid = false;
+				break;
+			}
+		}
+	}
+	else
+	{
+		int kingPosition = -1;
+		for (auto blackPiece : *m_pBlackPieces)
+		{
+			if (blackPiece->GetPiece() == Piece::king)
+			{
+				kingPosition = blackPiece->GetPosition();
+				break;
+			}
+		}
+		for (auto whitePiece : *m_pWhitePieces)
+		{
+			if (IsValidMoveSwitch(kingPosition, whitePiece))
+			{
+				valid = false;
+				break;
+			}
+		}
+	}
 	return valid;
 }
 
@@ -413,4 +500,64 @@ void Game::ClearBackground( ) const
 {
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT );
+}
+
+bool Game::CheckForCastling(int newPosition, ChessPiece* piece)const
+{
+	if (!bool(piece->GetColor()))
+	{
+		if (newPosition == 6)
+		{
+			for (auto rook : *m_pWhitePieces)
+			{
+				if (rook->GetPosition() == 7 && rook->GetHasNotMoved())
+				{
+					//castle
+					return true;
+					break;
+				}
+			}
+		}
+		else if (newPosition == 2)
+		{
+			for (auto rook : *m_pWhitePieces)
+			{
+				if (rook->GetPosition() == 0 && rook->GetHasNotMoved())
+				{
+					//castle
+					return true;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (newPosition == 62)
+		{
+			for (auto rook : *m_pBlackPieces)
+			{
+				if (rook->GetPosition() == 63 && rook->GetHasNotMoved())
+				{
+					//castle
+					return true;
+					break;
+				}
+			}
+		}
+		else if (newPosition == 58)
+		{
+			for (auto rook : *m_pWhitePieces)
+			{
+				if (rook->GetPosition() == 56 && rook->GetHasNotMoved())
+				{
+					//castle
+					return true;
+					break;
+				}
+			}
+		}
+	}
+
+	return false;
 }
