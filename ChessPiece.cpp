@@ -33,6 +33,26 @@ void ChessPiece::SetPosition(int newPosition)
 {
 	m_HasNotMoved = false;
 	m_Position = newPosition;
+	if (m_Color == Color::white)
+	{
+		if (m_Piece == Piece::pawn)
+		{
+			if (int(newPosition/8) == 7)
+			{
+				m_Piece = Piece::queen;
+			}
+		}
+	}
+	else
+	{
+		if (m_Piece == Piece::pawn)
+		{
+			if (int(newPosition / 8) == 0)
+			{
+				m_Piece = Piece::queen;
+			}
+		}
+	}
 }
 
 Piece ChessPiece::GetPiece() const

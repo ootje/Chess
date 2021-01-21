@@ -88,7 +88,6 @@ void Game::Update( float elapsedSec )
 	//{
 	//	std::cout << "Left and up arrow keys are down\n";
 	//}
-	std::cout << int(m_pWhitePieces->at(4).GetCanBeEP()) << '\n';
 }
 
 void Game::Draw( ) const
