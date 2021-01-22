@@ -2,25 +2,47 @@
 #include "MiniMax.h"
 #include <algorithm>
 #include <list>
+#include <random>
 
 MiniMax::MiniMax()
-	:m_Depth{2}
+	:m_Depth{3}
 {
-
+	m_HashTable = std::vector<std::vector<Uint64>>{};
+	m_VisitedBoards = std::unordered_set<Uint64>{};
+	InitHashTable();
 }
 
 ChessMove MiniMax::CalculateNextMove(std::vector<ChessPiece> white, std::vector<ChessPiece> black)
 {
 	ChessMove bestMove{ white.at(0).GetPosition(),white.at(0) };
-	MiniMaxAlgo(bestMove, white, black, m_Depth, true);
+	m_VisitedBoards.clear();
+	MiniMaxAlgo(bestMove, white, black, m_Depth, true,-10000.f,10000.f);
 	return bestMove;
 }
 
-float MiniMax::MiniMaxAlgo(ChessMove& newMove,std::vector<ChessPiece>& white, std::vector<ChessPiece>& black, int depth, bool isMaximizing)
+float MiniMax::MiniMaxAlgo(ChessMove& newMove,std::vector<ChessPiece>& white, std::vector<ChessPiece>& black, int depth, bool isMaximizing, float alpha, float beta)
 {
 	if (depth == 0) // or no valid move
 	{
 		return RateBoard(white, black);
+	}
+
+	Uint64 hash = GetHash(white,black);
+	if (std::find(m_VisitedBoards.begin(),m_VisitedBoards.end(),hash) != m_VisitedBoards.end())
+	{
+		//break because board is already visited
+		if (isMaximizing)
+		{
+			return 10000.f;
+		}
+		else
+		{
+			return -10000.f;
+		}
+	}
+	else
+	{
+		m_VisitedBoards.insert(hash);
 	}
 
 	float rating = 0.f;
@@ -34,11 +56,18 @@ float MiniMax::MiniMaxAlgo(ChessMove& newMove,std::vector<ChessPiece>& white, st
 
 			MakeMove(move, copyWhite, copyBlack);
 			ChessMove chessMove = newMove;
-			float tempRating = MiniMaxAlgo(chessMove,copyWhite, copyBlack, depth - 1, false);
+			float tempRating = MiniMaxAlgo(chessMove,copyWhite, copyBlack, depth - 1, false, alpha,beta);
+
 			if (rating < tempRating)
 			{
 				rating = tempRating;
 				newMove = move;
+			}
+
+			alpha = std::max(alpha, rating);
+			if (alpha >= beta)
+			{
+				break;
 			}
 		}
 	}
@@ -52,11 +81,18 @@ float MiniMax::MiniMaxAlgo(ChessMove& newMove,std::vector<ChessPiece>& white, st
 
 			MakeMove(move, copyWhite, copyBlack);
 			ChessMove chessMove = newMove;
-			float tempRating = MiniMaxAlgo(chessMove,copyWhite, copyBlack, depth - 1, true);
+			float tempRating = MiniMaxAlgo(chessMove,copyWhite, copyBlack, depth - 1, true,alpha, beta);
+			
 			if (rating > tempRating)
 			{
 				rating = tempRating;
 				newMove = move;
+			}
+
+			beta = std::min(beta, rating);
+			if (beta <= alpha)
+			{
+				break;
 			}
 		}
 	}
@@ -356,4 +392,52 @@ float MiniMax::PositionRatingQueen(ChessPiece piece)
 		return -2.f;
 	}
 	return 0.f;
+}
+
+Uint64 MiniMax::GetHash(std::vector<ChessPiece> white, std::vector<ChessPiece> black)
+{
+	Uint64 hash = 0;
+	for (size_t i = 0; i < 64; i++)
+	{
+		for (auto& p : white)
+		{
+			if (p.GetPosition() == i)
+			{
+				size_t j = int(p.GetPiece());
+				hash = hash ^ m_HashTable.at(i).at(j);
+			}
+		}
+		for (auto& p : black)
+		{
+			if (p.GetPosition() == i)
+			{
+				size_t j = int(p.GetPiece()) + 6;//+6 because black
+				hash = hash ^ m_HashTable.at(i).at(j);
+			}
+		}
+	}
+	return hash;
+}
+
+void MiniMax::InitHashTable()
+{
+	for (size_t i = 0; i < 64; i++)
+	{
+		std::vector<Uint64> vector{};
+		for (size_t j = 0; j < 12; j++)
+		{
+			vector.push_back(0);
+		}
+		m_HashTable.push_back(vector);
+	}
+	for (size_t i = 0; i < 64; i++)
+	{
+		for (size_t j = 0; j < 12; j++)
+		{
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_int_distribution<Uint64> distribution(std::numeric_limits<std::uint64_t>::min(), std::numeric_limits<std::uint64_t>::max());
+			m_HashTable.at(i).at(j) = distribution(gen);
+		}
+	}
 }

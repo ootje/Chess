@@ -3,6 +3,8 @@
 #include <cmath>
 #include "ChessPiece.h"
 #include <iostream>
+#include <ctime>
+#include <chrono>
 
 
 struct ChessMove
@@ -14,13 +16,6 @@ struct ChessMove
 	}
 	int newPosition;
 	ChessPiece movingPiece;
-
-	/*ChessMove& operator=(const ChessMove& other)
-	{
-		std::swap(movingPiece, other.movingPiece);
-		newPosition = other.newPosition;
-		return *this;
-	}*/
 };
 
 
@@ -42,8 +37,17 @@ bool inline MakeMove(ChessMove newMove, std::vector<ChessPiece>& white, std::vec
 inline std::vector<ChessMove> AllMovesForOnePiece(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
 inline std::vector<ChessMove> AllMovesForAllPieces(std::vector<ChessPiece> white, std::vector<ChessPiece> black, bool isWhitesMove);
 
+inline std::vector<ChessMove> GetKingMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
+inline std::vector<ChessMove> GetQueenMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
+inline std::vector<ChessMove> GetRookMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
+inline std::vector<ChessMove> GetBishopMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
+inline std::vector<ChessMove> GetKnightMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
+inline std::vector<ChessMove> GetPawnMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
+
 bool IsValidMove(ChessMove newMove, std::vector<ChessPiece>& white, std::vector<ChessPiece>& black)
 {
+	if (newMove.newPosition < 0 || newMove.newPosition > 63)
+		return false;
 	if (newMove.newPosition == newMove.movingPiece.GetPosition())
 		return false;
 
@@ -290,7 +294,6 @@ bool ValidPawnMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector
 
 	return valid;
 }
-
 bool ValidRookMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
 {
 	bool valid = false;
@@ -351,18 +354,38 @@ bool ValidRookMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector
 
 	return valid;
 }
-
 bool ValidKnightMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
 {
 	bool valid = false;
-	if ((newMove.newPosition)% 8 == 7 && (newMove.movingPiece.GetPosition()) % 8 == 0)
+	if ((newMove.movingPiece.GetPosition()) % 8 == 7)
 	{
-		return false;
+		if ((newMove.newPosition) % 8 != 6 && (newMove.newPosition) % 8 != 5)
+		{
+			return false;
+		}
 	}
-	if ((newMove.newPosition) % 8 == 0 && (newMove.movingPiece.GetPosition()) % 8 == 7)
+	if ((newMove.newPosition) % 8 == 7)
 	{
-		return false;
+		if (newMove.movingPiece.GetPosition() % 8 != 6 && newMove.movingPiece.GetPosition() % 8 != 5)
+		{
+			return false;
+		}
 	}
+	if ((newMove.newPosition) % 8 == 0)
+	{
+		if (newMove.movingPiece.GetPosition() % 8 != 1 && newMove.movingPiece.GetPosition() % 8 != 2)
+		{
+			return false;
+		}
+	}
+	if ((newMove.movingPiece.GetPosition()) % 8 == 0)
+	{
+		if ((newMove.newPosition) % 8 != 1 && (newMove.newPosition) % 8 != 2)
+		{
+			return false;
+		}
+	}
+
 	if ((newMove.newPosition) % 8 != (newMove.movingPiece.GetPosition()) % 8) // not on same  x level
 	{
 		if ((newMove.newPosition) / 8 != (newMove.movingPiece.GetPosition()) / 8 ) // not on same y level
@@ -388,7 +411,6 @@ bool ValidKnightMove(ChessMove newMove, std::vector<ChessPiece> white, std::vect
 
 	return false;
 }
-
 bool ValidBishopMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
 {
 	bool valid = false;
@@ -426,26 +448,30 @@ bool ValidBishopMove(ChessMove newMove, std::vector<ChessPiece> white, std::vect
 	}
 	return valid;
 }
-
 bool ValidQueenMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
 {
 	return ValidBishopMove(newMove, white, black) || ValidRookMove(newMove, white, black);
 }
-
 bool ValidKingMove(ChessMove newMove, std::vector<ChessPiece>& white, std::vector<ChessPiece>& black)
 {
 	bool valid = false;
-	if (newMove.newPosition + 1 == newMove.movingPiece.GetPosition() || newMove.movingPiece.GetPosition() == newMove.newPosition - 1)
+	if (newMove.newPosition + 8 == newMove.movingPiece.GetPosition() || newMove.movingPiece.GetPosition() == newMove.newPosition - 8) //up down
 	{
 		valid = true;
 	}
-	else if (newMove.newPosition + 1 == newMove.movingPiece.GetPosition() + 8 || newMove.movingPiece.GetPosition() + 8 == newMove.newPosition - 1 || newMove.movingPiece.GetPosition() + 8 == newMove.newPosition)
+	else if (newMove.newPosition + 8 == newMove.movingPiece.GetPosition() + 1 || newMove.movingPiece.GetPosition() + 1 == newMove.newPosition - 8 || newMove.movingPiece.GetPosition() + 1 == newMove.newPosition) // right
 	{
-		valid = true;
+		if (newMove.movingPiece.GetPosition() % 8 != 7)
+		{
+			valid = true;
+		}
 	}
-	else if (newMove.newPosition + 1 == newMove.movingPiece.GetPosition() - 8 || newMove.movingPiece.GetPosition() - 8 == newMove.newPosition - 1 || newMove.movingPiece.GetPosition() - 8 == newMove.newPosition)
+	else if (newMove.newPosition + 8 == newMove.movingPiece.GetPosition() - 1 || newMove.movingPiece.GetPosition() - 1 == newMove.newPosition - 8 || newMove.movingPiece.GetPosition() - 1 == newMove.newPosition) //left
 	{
-		valid = true;
+		if (newMove.movingPiece.GetPosition() % 8 != 0)
+		{
+			valid = true;
+		}
 	}
 
 	if (newMove.movingPiece.GetHasNotMoved() && !valid)
@@ -631,19 +657,43 @@ bool MakeMove(ChessMove newMove, std::vector<ChessPiece>& white, std::vector<Che
 std::vector<ChessMove> AllMovesForOnePiece(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
 {
 	std::vector<ChessMove> vector{};
+	switch (piece.GetPiece())
+	{
+	case Piece::pawn:
+		vector = GetPawnMoves(piece, white, black);
+		break;
+	case Piece::rook:
+		vector = GetRookMoves(piece, white, black);
+		break;
+	case Piece::knight:
+		vector = GetKnightMoves(piece, white, black);
+		break;
+	case Piece::bishop:
+		vector = GetBishopMoves(piece, white, black);
+		break;
+	case Piece::queen:
+		vector = GetQueenMoves(piece, white, black);
+		break;
+	case Piece::king:
+		vector = GetKingMoves(piece, white, black);
+		break;
+	}
+	return vector;
+
+	/*std::vector<ChessMove> vector{};
 	for (size_t x = 0; x < 8; x++)
 	{
 		for (size_t y = 0; y < 8; y++)
 		{
 			int position = y * 8 + x;
 			ChessMove move{ position,piece };
-			if (MakeMove(move,white,black,true))
+			if (MakeMove(move, white, black, true))
 			{
 				vector.push_back(ChessMove(y * 8 + x, piece));
 			}
 		}
 	}
-	return vector;
+	return vector;*/
 }
 
 std::vector<ChessMove> AllMovesForAllPieces(std::vector<ChessPiece> white, std::vector<ChessPiece> black, bool isWhitesMove)
@@ -665,5 +715,110 @@ std::vector<ChessMove> AllMovesForAllPieces(std::vector<ChessPiece> white, std::
 			vector.insert(vector.end(), tempVector.begin(), tempVector.end());
 		}
 	}
+	return vector;
+}
+
+std::vector<ChessMove> GetKingMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
+{
+	std::vector<int> move{ -9,-8,-7,-1,1,7,8,9 };
+	std::vector<ChessMove> vector{};
+	for (size_t i = 0; i < move.size(); i++)
+	{
+		ChessMove chessMove{ piece.GetPosition() + move.at(i),piece };
+		if (MakeMove(chessMove, white, black, true))
+		{
+			vector.push_back(chessMove);
+		}
+	}
+
+	return vector;
+}
+std::vector<ChessMove> GetQueenMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
+{
+	//auto t1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	//auto t2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	//std::cout << t2 - t1 << '\n';
+
+	std::vector<int> move{ -7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,-8,-16,-24,-32,-40,-48,-56,8,16,24,32,40,48,56,-9,-18,-27,-36,-45,-54,-63,9,18,27,36,45,54,63,7,14,21,28,35,42,49,-7,-14,-21,-28,-35,-42,-49 };
+	std::vector<ChessMove> vector{};
+	for (size_t i = 0; i < move.size(); i++)
+	{
+		ChessMove chessMove{ piece.GetPosition() + move.at(i),piece };
+		if (MakeMove(chessMove, white, black, true))
+		{
+			vector.push_back(chessMove);
+		}
+	}
+
+	return vector;
+}
+std::vector<ChessMove> GetRookMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
+{
+	std::vector<int> move{ -7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,-8,-16,-24,-32,-40,-48,-56,8,16,24,32,40,48,56 };
+	std::vector<ChessMove> vector{};
+	for (size_t i = 0; i < move.size(); i++)
+	{
+		ChessMove chessMove{ piece.GetPosition() + move.at(i),piece };
+		if (MakeMove(chessMove, white, black, true))
+		{
+			vector.push_back(chessMove);
+		}
+	}
+
+	return vector;
+}
+std::vector<ChessMove> GetBishopMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
+{
+	std::vector<int> move{ -9,-18,-27,-36,-45,-54,-63,9,18,27,36,45,54,63,7,14,21,28,35,42,49,-7,-14,-21,-28,-35,-42,-49 };
+	std::vector<ChessMove> vector{};
+	for (size_t i = 0; i < move.size(); i++)
+	{
+		ChessMove chessMove{ piece.GetPosition() + move.at(i),piece };
+		if (MakeMove(chessMove, white, black, true))
+		{
+			vector.push_back(chessMove);
+		}
+	}
+
+	return vector;
+}
+std::vector<ChessMove> GetKnightMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
+{
+	std::vector<int> move{ -17,-10,-15,-6,6,15,10,17};
+	std::vector<ChessMove> vector{};
+	for (size_t i = 0; i < move.size(); i++)
+	{
+		ChessMove chessMove{ piece.GetPosition() + move.at(i),piece };
+		if (MakeMove(chessMove, white, black, true))
+		{
+			vector.push_back(chessMove);
+		}
+	}
+
+	return vector;
+}
+std::vector<ChessMove> GetPawnMoves(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
+{
+	std::vector<int> move{};
+
+	if (!bool(piece.GetColor())) //white
+	{
+		move = std::vector<int>{7,8,16,9};
+	}
+	else
+	{
+		move = std::vector<int>{ -7,-8,-16,-9 };
+	}
+
+	std::vector<ChessMove> vector{};
+	for (size_t i = 0; i < move.size(); i++)
+	{
+		ChessMove chessMove{ piece.GetPosition() + move.at(i),piece };
+		if (MakeMove(chessMove, white, black, true))
+		{
+			vector.push_back(chessMove);
+		}
+	}
+
 	return vector;
 }

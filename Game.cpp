@@ -28,6 +28,8 @@ void Game::Initialize( )
 		}
 	}
 
+	m_pMiniMax = new MiniMax();
+
 	// INIT Pieces
 	m_IsWhiteBottom = true;
 	m_IsWhitesMove = true;
@@ -73,20 +75,19 @@ void Game::Cleanup( )
 	delete(m_pPiecesTexture);
 	delete(m_pWhitePieces);
 	delete(m_pBlackPieces);
+	delete(m_pMiniMax);
 }
 
 void Game::Update( float elapsedSec )
 {
 	if (!m_IsWhitesMove)
 	{
-		MiniMax newMiniMax;
-
 		std::vector<ChessPiece>* pWhite = new std::vector<ChessPiece>;
 		pWhite->insert(pWhite->end(), m_pWhitePieces->begin(), m_pWhitePieces->end());
 		std::vector<ChessPiece>* pBlack = new std::vector<ChessPiece>;
 		pBlack->insert(pBlack->end(), m_pBlackPieces->begin(), m_pBlackPieces->end());
 
-		ChessMove move = newMiniMax.CalculateNextMove(*pWhite, *pBlack);
+		ChessMove move = m_pMiniMax->CalculateNextMove(*pWhite, *pBlack);
 		if (MakeMove(move,*m_pWhitePieces, *m_pBlackPieces))
 		{
 			m_IsWhitesMove = true;
@@ -223,7 +224,6 @@ void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 		if (MakeMove(move, *m_pWhitePieces, *m_pBlackPieces))
 		{
 			m_IsWhitesMove = false;
-			std::cout << newIndex << '\n';
 		}
 
 		m_IsWhiteMoving = false;

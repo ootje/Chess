@@ -50,4 +50,6 @@ private:
 	int m_BlackMovingPiece;
 
 	bool m_IsWhitesMove;
+
+	MiniMax* m_pMiniMax;
 };
