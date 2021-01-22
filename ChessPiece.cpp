@@ -78,3 +78,22 @@ void ChessPiece::SetCanBeEp(bool canBe)
 {
 	m_CanBeEnPassant = canBe;
 }
+
+ChessPiece::ChessPiece(const ChessPiece& other)
+{
+	m_Color = other.m_Color;
+	m_Position = other.m_Position;
+	m_Piece = other.m_Piece;
+	m_HasNotMoved = other.m_HasNotMoved;
+	m_CanBeEnPassant = other.m_CanBeEnPassant;
+}
+
+ChessPiece& ChessPiece::operator=(const ChessPiece& other)
+{
+	m_Color = other.m_Color;
+	m_Position = other.m_Position;
+	m_Piece = other.m_Piece;
+	m_HasNotMoved = other.m_HasNotMoved;
+	m_CanBeEnPassant = other.m_CanBeEnPassant;
+	return *this;
+}

@@ -34,9 +34,10 @@ public:
 	bool GetCanBeEP() const;
 	void SetCanBeEp(bool canBe);
 
-	// no pointers for storage so...
-	ChessPiece(const ChessPiece& other) = default;
-	ChessPiece& operator=(const ChessPiece& other) = default;
+	
+	ChessPiece(const ChessPiece& other);
+	ChessPiece& operator=(const ChessPiece& other);
+
 	ChessPiece(ChessPiece&& other) = default;
 	ChessPiece& operator=(ChessPiece&& other) = default;
 

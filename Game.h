@@ -1,6 +1,5 @@
 #pragma once
-#include <vector>
-#include "ChessPiece.h"
+#include "MiniMax.h"
 
 class Game
 {
@@ -51,19 +50,4 @@ private:
 	int m_BlackMovingPiece;
 
 	bool m_IsWhitesMove;
-
-	bool IsValidMove(int newPosition, ChessPiece& piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack) ;
-	bool IsValidMoveSwitch(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack) ;
-
-	bool ValidPawnMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
-	bool ValidRookMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
-	bool ValidKnightMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
-	bool ValidBishopMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
-	bool ValidQueenMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
-	bool ValidKingMove(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
-
-	bool KingUnderAttack(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack, int newKingPosition = -100);
-	bool CheckForCastling(int newPosition, ChessPiece piece, std::vector<ChessPiece>* pWhite, std::vector<ChessPiece>* pBlack);
-
-	void MakeMove(int newPosition, ChessPiece& piece);
 };
