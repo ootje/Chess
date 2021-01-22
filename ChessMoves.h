@@ -25,7 +25,7 @@ struct ChessMove
 
 
 bool inline IsValidMove(ChessMove newMove, std::vector<ChessPiece>& white, std::vector<ChessPiece>& black);
-bool inline IsValidMoveSwitch(ChessMove newMove, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
+bool inline IsValidMoveSwitch(ChessMove newMove, std::vector<ChessPiece>& white, std::vector<ChessPiece>& black);
 
 bool inline ValidPawnMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
 bool inline ValidRookMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
@@ -158,7 +158,7 @@ bool IsValidMove(ChessMove newMove, std::vector<ChessPiece>& white, std::vector<
 	return valid;
 }
 
-bool IsValidMoveSwitch(ChessMove newMove, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
+bool IsValidMoveSwitch(ChessMove newMove, std::vector<ChessPiece>& white, std::vector<ChessPiece>& black)
 {
 	bool valid = false;
 	switch (newMove.movingPiece.GetPiece())
@@ -190,6 +190,14 @@ bool ValidPawnMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector
 	int direction = (int(newMove.movingPiece.GetColor()) * 2 - 1);//should be 1 for going up and -1 for going down
 	direction = -direction;
 	bool valid = false;
+	if ((newMove.newPosition) % 8 == 7 && (newMove.movingPiece.GetPosition()) % 8 == 0 ) // not on same  x level
+	{
+		return false;
+	}
+	if ((newMove.newPosition) % 8 == 0 && (newMove.movingPiece.GetPosition()) % 8 == 7) // not on same  x level
+	{
+		return false;
+	}
 
 	if (newMove.movingPiece.GetHasNotMoved())
 	{
@@ -347,41 +355,31 @@ bool ValidRookMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector
 bool ValidKnightMove(ChessMove newMove, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
 {
 	bool valid = false;
-	if ((newMove.newPosition - 8) == (newMove.movingPiece.GetPosition() - 2) || (newMove.newPosition + 8) == (newMove.movingPiece.GetPosition() - 2))// left up-down
+	if ((newMove.newPosition)% 8 == 7 && (newMove.movingPiece.GetPosition()) % 8 == 0)
 	{
-		if ((newMove.newPosition - 8) % 8 == (newMove.movingPiece.GetPosition() - 2) % 8 || (newMove.newPosition + 8) % 8 == (newMove.movingPiece.GetPosition() - 2) % 8)
+		return false;
+	}
+	if ((newMove.newPosition) % 8 == 0 && (newMove.movingPiece.GetPosition()) % 8 == 7)
+	{
+		return false;
+	}
+	if ((newMove.newPosition) % 8 != (newMove.movingPiece.GetPosition()) % 8) // not on same  x level
+	{
+		if ((newMove.newPosition) / 8 != (newMove.movingPiece.GetPosition()) / 8 ) // not on same y level
 		{
-			if ((newMove.newPosition - 8) / 8 == (newMove.movingPiece.GetPosition() - 2) / 8 || (newMove.newPosition + 8) / 8 == (newMove.movingPiece.GetPosition() - 2) / 8)
+			if ((newMove.newPosition - 8) == (newMove.movingPiece.GetPosition() - 2) || (newMove.newPosition + 8) == (newMove.movingPiece.GetPosition() - 2))// left up-down
 			{
 				return true;
 			}
-		}
-	}
-	if ((newMove.newPosition - 1) == (newMove.movingPiece.GetPosition() + 16) || (newMove.newPosition + 1) == (newMove.movingPiece.GetPosition() + 16))//up right-left
-	{
-		if ((newMove.newPosition - 1) % 8 == (newMove.movingPiece.GetPosition() + 16) % 8 || (newMove.newPosition + 1) % 8 == (newMove.movingPiece.GetPosition() + 16) % 8)
-		{
-			if ((newMove.newPosition - 1) / 8 == (newMove.movingPiece.GetPosition() + 16) / 8 || (newMove.newPosition + 1) / 8 == (newMove.movingPiece.GetPosition() + 16) / 8)
+			if ((newMove.newPosition - 1) == (newMove.movingPiece.GetPosition() + 16) || (newMove.newPosition + 1) == (newMove.movingPiece.GetPosition() + 16))//up right-left
 			{
 				return true;
 			}
-		}
-	}
-	if ((newMove.newPosition - 8) == (newMove.movingPiece.GetPosition() + 2) || (newMove.newPosition + 8) == (newMove.movingPiece.GetPosition() + 2))// right
-	{
-		if ((newMove.newPosition - 8) % 8 == (newMove.movingPiece.GetPosition() + 2) % 8 || (newMove.newPosition + 8) % 8 == (newMove.movingPiece.GetPosition() + 2) % 8)
-		{
-			if ((newMove.newPosition - 8) / 8 == (newMove.movingPiece.GetPosition() + 2) / 8 || (newMove.newPosition + 8) / 8 == (newMove.movingPiece.GetPosition() + 2) / 8)
+			if ((newMove.newPosition - 8) == (newMove.movingPiece.GetPosition() + 2) || (newMove.newPosition + 8) == (newMove.movingPiece.GetPosition() + 2))// right
 			{
 				return true;
 			}
-		}
-	}
-	if ((newMove.newPosition - 1) == (newMove.movingPiece.GetPosition() - 16) || (newMove.newPosition + 1) == (newMove.movingPiece.GetPosition() - 16) )// down right-left
-	{
-		if ((newMove.newPosition - 1) % 8 == (newMove.movingPiece.GetPosition() - 16) % 8 || (newMove.newPosition + 1) % 8 == (newMove.movingPiece.GetPosition() - 16) % 8)
-		{
-			if ((newMove.newPosition - 1) / 8 == (newMove.movingPiece.GetPosition() - 16) / 8 || (newMove.newPosition + 1) / 8 == (newMove.movingPiece.GetPosition() - 16) / 8)
+			if ((newMove.newPosition - 1) == (newMove.movingPiece.GetPosition() - 16) || (newMove.newPosition + 1) == (newMove.movingPiece.GetPosition() - 16))// down right-left
 			{
 				return true;
 			}
@@ -653,7 +651,7 @@ std::vector<ChessMove> AllMovesForAllPieces(std::vector<ChessPiece> white, std::
 	std::vector<ChessMove> vector{};
 	if (isWhitesMove)
 	{
-		for (auto p : white)
+		for (auto& p : white)
 		{
 			std::vector<ChessMove> tempVector = AllMovesForOnePiece(p, white, black);
 			vector.insert(vector.end(), tempVector.begin(), tempVector.end());
@@ -661,7 +659,7 @@ std::vector<ChessMove> AllMovesForAllPieces(std::vector<ChessPiece> white, std::
 	}
 	else
 	{
-		for (auto p : black)
+		for (auto& p : black)
 		{
 			std::vector<ChessMove> tempVector = AllMovesForOnePiece(p, white, black);
 			vector.insert(vector.end(), tempVector.begin(), tempVector.end());
