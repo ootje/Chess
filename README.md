@@ -26,3 +26,6 @@ Conclusion
 The bot works well and could be improved with ideas like: iterative deepening, quiescence search, ... for faster move generation and increased depth.
 During the opening an opening book could be used so the opening is faster and better. Near the end game the bot is super fast and perhaps a way to 
 increase the depth could improve it in this scenario.
+
+Piece Square Table Link
+- https://www.freecodecamp.org/news/simple-chess-ai-step-by-step-1d55a9266977/
