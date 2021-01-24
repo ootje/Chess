@@ -5,7 +5,7 @@
 #include <random>
 
 MiniMax::MiniMax()
-	:m_Depth{3}
+	:m_Depth{4}
 {
 	m_HashTable = std::vector<std::vector<Uint64>>{};
 	m_VisitedBoards = std::unordered_set<Uint64>{};
@@ -33,11 +33,11 @@ float MiniMax::MiniMaxAlgo(ChessMove& newMove,std::vector<ChessPiece>& white, st
 		//break because board is already visited
 		if (isMaximizing)
 		{
-			return 10000.f;
+			return 900.f + depth;
 		}
 		else
 		{
-			return -10000.f;
+			return -900.f - depth;
 		}
 	}
 	else
@@ -49,7 +49,19 @@ float MiniMax::MiniMaxAlgo(ChessMove& newMove,std::vector<ChessPiece>& white, st
 	if (isMaximizing) //BOT
 	{
 		rating = -10000.f;
-		for (auto& move : AllMovesForAllPieces(white,black,false)) //black
+		std::vector<ChessMove> allMoves = AllMovesForAllPieces(white, black, false);
+		if (allMoves.size() == 0) //CheckMate
+		{
+			if (IsBlackCheck(white, black)) // if mate make sure its mate as soon as possible
+			{
+				return -900.f - depth;
+			}
+			else
+			{
+				return 0.f;
+			}
+		}
+		for (auto& move : allMoves) //black
 		{
 			std::vector<ChessPiece> copyWhite = white;;
 			std::vector<ChessPiece> copyBlack = black;
@@ -74,7 +86,19 @@ float MiniMax::MiniMaxAlgo(ChessMove& newMove,std::vector<ChessPiece>& white, st
 	else // PREDICT PLAYER
 	{
 		rating = 10000.f;
-		for (auto& move : AllMovesForAllPieces(white, black, true)) //white
+		std::vector<ChessMove> allMoves = AllMovesForAllPieces(white, black, true);
+		if (allMoves.size() == 0) //CheckMate
+		{
+			if (IsWhiteCheck(white, black))
+			{
+				return 900.f + depth;
+			}
+			else
+			{
+				return 0.f;
+			}
+		}
+		for (auto& move : allMoves) //white
 		{
 			std::vector<ChessPiece> copyWhite = white;;
 			std::vector<ChessPiece> copyBlack = black;
@@ -105,18 +129,18 @@ float MiniMax::RateBoard(std::vector<ChessPiece> white, std::vector<ChessPiece> 
 	float whiteRating = 0.f;
 	for (auto& p : white)
 	{
-		whiteRating -= GetPieceRating(p);
+		whiteRating -= GetPieceRating(p,white,black);
 	}
 	float blackRating = 0.f;
 	for (auto& p : black)
 	{
-		blackRating += GetPieceRating(p);
+		blackRating += GetPieceRating(p,white,black);
 	}
 
 	return (blackRating + whiteRating);
 }
 
-float MiniMax::GetPieceRating(ChessPiece piece)
+float MiniMax::GetPieceRating(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black)
 {
 	float value = 0.f;
 	switch (piece.GetPiece())
@@ -143,7 +167,10 @@ float MiniMax::GetPieceRating(ChessPiece piece)
 		break;
 	case Piece::king:
 		value += 900.f;
-		value += PositionRatingKing(piece);
+		if (!IsEndGame(white, black))
+		{
+			value += PositionRatingKing(piece);
+		}
 		break;
 	}
 	return value;
@@ -312,7 +339,7 @@ float MiniMax::PositionRatingKnight(ChessPiece piece)
 	return 0.f;
 }
 float MiniMax::PositionRatingKing(ChessPiece piece)
-{
+{	
 	int position = piece.GetPosition();
 	if ((bool)piece.GetColor())
 	{

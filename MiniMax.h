@@ -12,7 +12,7 @@ public:
 private:
 	float MiniMaxAlgo(ChessMove& newMove, std::vector<ChessPiece>& white, std::vector<ChessPiece>& black,int depth , bool isMaximizing , float alpha, float beta);
 	float RateBoard(std::vector<ChessPiece> white, std::vector<ChessPiece> black);
-	float GetPieceRating(ChessPiece piece);
+	float GetPieceRating(ChessPiece piece, std::vector<ChessPiece> white, std::vector<ChessPiece> black);
 
 	// Based on the proposed position from
 	// https://medium.freecodecamp.org/simple-chess-ai-step-by-step-1d55a9266977

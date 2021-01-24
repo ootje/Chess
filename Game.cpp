@@ -29,12 +29,45 @@ void Game::Initialize( )
 	}
 
 	m_pMiniMax = new MiniMax();
+	m_PlayedMoves = std::vector<ChessMove>{};
 
 	// INIT Pieces
 	m_IsWhiteBottom = true;
 	m_IsWhitesMove = true;
 	m_pPiecesTexture = new Texture("Resources/ChessPieces.png");
 	m_pWhitePieces = new std::vector<ChessPiece>;
+
+
+	/*m_pWhitePieces->push_back(ChessPiece(Color::white, 8, Piece::pawn));
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 11, Piece::pawn));
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 13, Piece::pawn));
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 15, Piece::pawn));
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 19, Piece::pawn));
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 21, Piece::pawn));
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 42, Piece::pawn));
+
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 0, Piece::rook));
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 5, Piece::rook));
+
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 2, Piece::bishop));
+
+	m_pWhitePieces->push_back(ChessPiece(Color::white, 7, Piece::king));
+
+	m_pBlackPieces = new std::vector<ChessPiece>;
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 28, Piece::pawn));
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 33, Piece::pawn));
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 48, Piece::pawn));
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 50, Piece::pawn));
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 54, Piece::pawn));
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 55, Piece::pawn));
+
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 56, Piece::rook));
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 63, Piece::rook));
+
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 29, Piece::bishop));
+
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 44, Piece::queen));
+	m_pBlackPieces->push_back(ChessPiece(Color::black, 60, Piece::king));*/
 	for (size_t i = 8; i < 16; i++)
 	{
 		m_pWhitePieces->push_back(ChessPiece(Color::white, i, Piece::pawn));
@@ -91,6 +124,10 @@ void Game::Update( float elapsedSec )
 		if (MakeMove(move,*m_pWhitePieces, *m_pBlackPieces))
 		{
 			m_IsWhitesMove = true;
+			m_PlayedMoves.push_back(move);
+			std::cout << " , ";
+			PrintMove(move);
+			std::cout << '\n';
 		}
 
 		if (pWhite != nullptr)
@@ -224,6 +261,9 @@ void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 		if (MakeMove(move, *m_pWhitePieces, *m_pBlackPieces))
 		{
 			m_IsWhitesMove = false;
+			m_PlayedMoves.push_back(move);
+			std::cout << 1 + int(m_PlayedMoves.size() / 2.f) << ". ";
+			PrintMove(move);
 		}
 
 		m_IsWhiteMoving = false;
@@ -242,4 +282,47 @@ void Game::ClearBackground() const
 {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void Game::PrintMove(ChessMove move)
+{
+	std::cout << static_cast<char>(97 + (move.movingPiece.GetPosition()/8)) << 1 + move.movingPiece.GetPosition() % 8;
+	switch (move.movingPiece.GetPiece())
+	{
+	case Piece::pawn:
+		std::cout << "p";
+		break;
+	case Piece::knight:
+		std::cout << "N";
+		break;
+	case Piece::bishop:
+		std::cout << "B";
+		break;
+	case Piece::rook:
+		std::cout << "R";
+		break;
+	case Piece::queen:
+		std::cout << "Q";
+		break;
+	case Piece::king:
+		std::cout << "K";
+		break;
+	}
+	std::cout << static_cast<char>(97 +( move.newPosition / 8)) << 1 + move.newPosition % 8;
+	if (IsBlackCheck(*m_pWhitePieces,*m_pBlackPieces))
+	{
+		std::cout << '+';
+	}
+	if (IsBlackCheckmated(*m_pWhitePieces, *m_pBlackPieces))
+	{
+		std::cout << '!';
+	}
+	if (IsWhiteCheck(*m_pWhitePieces, *m_pBlackPieces))
+	{
+		std::cout << '+';
+	}
+	if (IsWhiteCheckmated(*m_pWhitePieces, *m_pBlackPieces))
+	{
+		std::cout << '!';
+	}
 }

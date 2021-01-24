@@ -52,4 +52,8 @@ private:
 	bool m_IsWhitesMove;
 
 	MiniMax* m_pMiniMax;
+
+	std::vector<ChessMove> m_PlayedMoves;
+
+	void PrintMove(ChessMove move);
 };
